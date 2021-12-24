@@ -10,7 +10,7 @@ namespace zPassLibrary
 {
     public class zPassConnect
     {
-		public static string Connection { get; set; } = "https://localhost:44335";
+		public static string Connection { get; set; } = "https://localhost:5001";
 		public static async Task<bool> HttpPost<T>(string url, object value, List<KeyValuePair<string,string>> headers, Func<T, Task<bool>> OnSuccess, Func<string, Task> OnError)
 		{
 			var client = new HttpClient();
@@ -18,7 +18,7 @@ namespace zPassLibrary
 
 			var contractResolver = new DefaultContractResolver
 			{
-				NamingStrategy = new SnakeCaseNamingStrategy()
+				NamingStrategy = new  CamelCaseNamingStrategy()
 			};
 
 			var serializationSettings = new JsonSerializerSettings()
