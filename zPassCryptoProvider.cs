@@ -9,7 +9,13 @@ namespace zPassLibrary
     {
         public object Create(string algorithm, params object[] args)
         {
-            throw new NotImplementedException();
+            if (algorithm == "ZPASS"
+                        && args[0] is zPassSecurityKey key)
+            {
+                return new zPassSignatureProvider(key, algorithm);
+            }
+
+            throw new NotSupportedException();
         }
 
         public bool IsSupportedAlgorithm(string algorithm, params object[] args)

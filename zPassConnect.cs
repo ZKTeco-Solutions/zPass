@@ -1,10 +1,14 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Security.Claims;
 
 namespace zPassLibrary
 {
@@ -86,34 +90,38 @@ namespace zPassLibrary
 			return retVal;
 		}
 
-		public static async Task<string> CreateRequest(Entity company, Entity software, string redirectUri, string scope)
+		public static async Task<string> CreateRequest(Entity company, Entity software, string redirectUri, string[] roles)
         {
 			var req = new RequestAuthorizationParameter
 			{
 				ClientId = Convert.ToBase64String(software.PublicKey),
 				OrganizationName = company.Identity,
 				RedirectUri = redirectUri,
-				Scope = scope,
+				Roles = roles,
 				SoftwareName = software.Identity,
 				State = ""
 			};
 
-			var claim = new zPassLibrary.JWTClaims()
+			var handler = new JsonWebTokenHandler();
+			var signKey = zPassSecurityKey.CreateSignerKey(company.PrivateKey);
+			var claimRole = new Dictionary<string, object>();
+			claimRole.Add(ClaimTypes.Role, "request_auth");
+
+			var token = handler.CreateToken(new SecurityTokenDescriptor()
 			{
 				Issuer = Convert.ToBase64String(company.PublicKey),
-				ExpirationTime = DateTime.Now.AddMinutes(2).ToUnixTimestamp(),
-				Scope = "authorize"
-			};
+				Audience = "https://api.zpass.io",
+				Expires = DateTime.UtcNow.AddDays(2),
+				SigningCredentials = new SigningCredentials(signKey, "ZPASS")
+			});
 
-			var jwt = zPassLibrary.Utils.CreateJWT(claim);
-			var sign = Convert.ToBase64String(zPassLibrary.Utils.Sign(Encoding.UTF8.GetBytes(jwt), company.PrivateKey));
 
 			var http = new HttpClient();
-			http.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwt + "." + sign);
+			//http.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
 			var headers = new List<KeyValuePair<string, string>>()
 			{
-				new KeyValuePair<string, string>( "Authorization", "Bearer " + jwt + "." + sign)
+				new KeyValuePair<string, string>( "Authorization", "Bearer " + token)
 			};
 
 			RequestAuthorizationResponse result = null;

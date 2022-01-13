@@ -211,13 +211,6 @@ namespace zPassLibrary
             return a1.SequenceEqual(a2);
         }
 
-        public static string CreateJWT(JWTClaims claims)
-        {
-            var header = JsonConvert.SerializeObject(new JWTHeader());
-            var strClaims = JsonConvert.SerializeObject(claims);
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes(header)) + "." + Convert.ToBase64String(Encoding.UTF8.GetBytes(strClaims));
-        }
-
         public static DateTime FromUnixTimeStamp(long time)
         {
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
