@@ -28,6 +28,11 @@ namespace zPassLibrary
         public EnumEntityType EntityType { get; private set; }
         public string Identity { get; private set; }
 
+        private Entity()
+        {
+
+        }
+
         public static Entity CreateNew(EnumEntityType type, string identity)
         {
             var keyPair = Utils.GenerateKeyPair();
@@ -51,23 +56,29 @@ namespace zPassLibrary
             return entity;
         }
 
-        public static byte[] GetPublicKeyFromXY(EnumEntityType type, string identity, byte[] x, byte[] y)
+        public Entity (EnumEntityType type, string identity, byte[] privateKey)
         {
             var arrID = System.Text.Encoding.UTF8.GetBytes(identity);
             var crc32 = Force.Crc32.Crc32CAlgorithm.Compute(arrID);
 
             var ecParams = ECNamedCurveTable.GetByName("secp256k1");
             ECDomainParameters domainParameters = new ECDomainParameters(ecParams.Curve, ecParams.G, ecParams.N, ecParams.H, ecParams.GetSeed());
-
+            /*
             var pubX = new Org.BouncyCastle.Math.BigInteger(+1, x);
             var pubY = new Org.BouncyCastle.Math.BigInteger(+1, y);
-
             var ecPoint = ecParams.Curve.CreatePoint(pubX, pubY);
+            */
+            var d = new BigInteger(privateKey);
+            var ecPoint = domainParameters.G.Multiply(d);
+
             var pubKeyParam = new ECPublicKeyParameters(ecPoint, domainParameters);
 
             var encoded = pubKeyParam.Q.GetEncoded();
 
-            return new List<byte[]> { new byte[] { (byte)type }, BitConverter.GetBytes(crc32), pubKeyParam.Q.GetEncoded()}.SelectMany(z => z).ToArray();
+            this.PrivateKey = privateKey;
+            this.PublicKey = new List<byte[]> { new byte[] { (byte)type }, BitConverter.GetBytes(crc32), pubKeyParam.Q.GetEncoded()}.SelectMany(z => z).ToArray();
+            this.Identity = identity;
+            this.EntityType = type;
         }
 
         public static byte[] GetPrivateKey(byte[] d)

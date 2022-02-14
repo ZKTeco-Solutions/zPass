@@ -12,7 +12,7 @@ using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using System.Linq;
 
-namespace zPassLibrary
+namespace zPassLibrary.Auth
 {
     public class zPassAuthHandler : AuthenticationHandler<zPassAuthenticationSchemeOptions>
     {
@@ -45,13 +45,14 @@ namespace zPassLibrary
                 var token = header.Substring(7);
 
 
-                var valid = Options.Validator(token);
+                var handler = new JsonWebTokenHandler();
+                var jsonToken = handler.ReadJsonWebToken(token);
+
+                var valid = Options.Validator(token, jsonToken);
 
 
                 if( valid )
                 {
-                    var handler = new JsonWebTokenHandler();
-                    var jsonToken = handler.ReadJsonWebToken(token);
 
                     // generate AuthenticationTicket from the Identity
                     // and current authentication scheme

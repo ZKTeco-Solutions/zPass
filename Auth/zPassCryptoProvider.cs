@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace zPassLibrary
+namespace zPassLibrary.Auth
 {
     public class zPassCryptoProvider : ICryptoProvider
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 
-namespace zPassLibrary
+namespace zPassLibrary.Auth
 {
     public class zPassSignatureProvider : SignatureProvider
     {

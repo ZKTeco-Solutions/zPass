@@ -175,6 +175,45 @@ namespace zPassLibrary
             return signer.GenerateSignature();
         }
 
+        public static string GenerateQrCodeInfo(Entity entity, string type, string[] request, string url, string id)
+        {
+            var qrInfo = new QrCodeInfo()
+            {
+                DateIssued = DateTime.UtcNow,
+                Issuer = entity.PublicKey,
+                IssuerName = entity.Identity,
+                Request = request,
+                Id = id,
+                Url = url,
+                Type = type
+            };
+            var payload = BinaryTools.FromObject(qrInfo);
+            var sign = Sign(payload, entity.PrivateKey);
+
+            return $"qrcodeinfo://{Convert.ToBase64String(payload)}.{Convert.ToBase64String(sign)}";
+        }
+
+        public static (QrCodeInfo qri, byte[] payload, byte[] signature) ReadQrCodeInfo(string input)
+        {
+            if (input.StartsWith("qrcodeinfo://"))
+            {
+                var split = input.Substring(13).Split('.');
+                var payload = Convert.FromBase64String(split[0]);
+                var signature = Convert.FromBase64String(split[1]);
+                var qci = JsonConvert.DeserializeObject<QrCodeInfo>(UTF8Encoding.UTF8.GetString(payload));
+                if( zPassLibrary.Utils.Verify(payload, signature, qci.Issuer))
+                {
+                    //test url if valid
+                    if (Uri.TryCreate(qci.Url, UriKind.Absolute, out Uri uri))
+                    {
+                        return (qci, payload, signature);
+                    }
+                }
+            }
+
+            throw new Exception("Invalid Qr Code");
+        }
+
         public static byte[] SignObject( object obj, byte[] privKey )
         {
             var s = JsonConvert.SerializeObject(obj);
