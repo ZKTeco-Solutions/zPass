@@ -28,18 +28,24 @@ namespace zPassLibrary
         public EnumEntityType EntityType { get; private set; }
         public string Identity { get; private set; }
 
-        private Entity()
+        public static Entity CreatePersonFromSecret(string firstName, string lastName, string secret)
         {
-
+            var bip39 = new dotnetstandard_bip39.BIP39();
+            var entropy = bip39.MnemonicToEntropy(secret, dotnetstandard_bip39.BIP39Wordlist.English);
+            var sha = SHA256.Create();
+            var privKey = sha.ComputeHash(entropy);
+            return new Entity(EnumEntityType.Person, $"{firstName} {lastName}", privKey);
         }
 
         public static Entity CreateNew(EnumEntityType type, string identity)
         {
             var keyPair = Utils.GenerateKeyPair();
-
-
-            var pubKey = (keyPair.Public as ECPublicKeyParameters).Q.GetEncoded();
             var privKey = (keyPair.Private as ECPrivateKeyParameters).D.ToByteArrayUnsigned();
+
+            return new Entity(type, identity, privKey);
+
+            /*
+            var pubKey = (keyPair.Public as ECPublicKeyParameters).Q.GetEncoded();
 
             var entity = new Entity();
 
@@ -53,7 +59,7 @@ namespace zPassLibrary
             //public key : type crc32 pubkey
             entity.PublicKey = new List<byte[]> { new byte[] { (byte)type }, BitConverter.GetBytes(crc32), pubKey }.SelectMany(x=>x).ToArray();
 
-            return entity;
+            return entity;*/
         }
 
         public Entity (EnumEntityType type, string identity, byte[] privateKey)
@@ -79,17 +85,6 @@ namespace zPassLibrary
             this.PublicKey = new List<byte[]> { new byte[] { (byte)type }, BitConverter.GetBytes(crc32), pubKeyParam.Q.GetEncoded()}.SelectMany(z => z).ToArray();
             this.Identity = identity;
             this.EntityType = type;
-        }
-
-        public static byte[] GetPrivateKey(byte[] d)
-        {
-            var ecParams = ECNamedCurveTable.GetByName("secp256k1");
-            ECDomainParameters domainParameters = new ECDomainParameters(ecParams.Curve, ecParams.G, ecParams.N, ecParams.H, ecParams.GetSeed());
-
-            var privKeyInt = new Org.BouncyCastle.Math.BigInteger(+1, d);
-            var privKeyParam = new ECPrivateKeyParameters(privKeyInt, domainParameters);
-
-            return privKeyParam.D.ToByteArrayUnsigned();
         }
 
         public static bool VerifyPublicKeyIdentity(byte[] publicKey, string identity)
