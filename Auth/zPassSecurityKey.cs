@@ -14,7 +14,6 @@ namespace zPassLibrary.Auth
         {
             var key = new zPassSecurityKey();
             key.PrivateKey = priv;
-
             key.CryptoProviderFactory.CustomCryptoProvider = new zPassCryptoProvider();
 
             return key;
