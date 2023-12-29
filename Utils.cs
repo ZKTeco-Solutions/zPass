@@ -14,6 +14,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Asn1;
+using dotnetstandard_bip39;
 
 namespace zPassLibrary
 {
@@ -23,6 +24,21 @@ namespace zPassLibrary
         {
             return new RNGCryptoServiceProvider();
         });
+
+        public static bool ValidateMnemonic(string mnemonic)
+        {
+            var bip = new BIP39();
+            try
+            {
+                bip.MnemonicToEntropy(mnemonic, BIP39Wordlist.English);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
 
         public static byte[] GetRandomKey(int keyLength)
         {
