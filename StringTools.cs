@@ -12,16 +12,14 @@ namespace zPassLibrary
         {
             return string.Concat(str.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString())).ToLower();
         }
-        public static string ToBase58(object obj)
+        public static string ToBase58String(byte[] data)
         {
-            var str = JsonConvert.SerializeObject(obj);
-            return Base58Check.Base58CheckEncoding.EncodePlain(Encoding.UTF8.GetBytes(str));
+            return Base58Check.Base58CheckEncoding.EncodePlain(data);
         }
 
-        public static T FromBase58<T>(string s)
+        public static byte[] FromBase58String(string s)
         {
-            var json = Encoding.UTF8.GetString(Base58Check.Base58CheckEncoding.DecodePlain(s));
-            return JsonConvert.DeserializeObject<T>(json);
+            return Base58Check.Base58CheckEncoding.DecodePlain(s);
         }
         public static bool NoEmptyString(params string[] str)
         {

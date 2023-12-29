@@ -189,19 +189,6 @@ namespace dotnetstandard_bip39
             return string.Join("", hash.Select(h => lPad(Convert.ToString(h, 2), "0", 8)));
         }
 
-        public bool ValidateMnemonic(string mnemonic, BIP39Wordlist wordlist)
-        {
-            try
-            {
-                MnemonicToEntropy(mnemonic, wordlist);
-            }
-            catch
-            {
-                return false;
-            }
-            return true;
-        }
-
         private static string[] GetWordlist(BIP39Wordlist wordlist)
         {
             var wordlists = new Dictionary<string, string>
